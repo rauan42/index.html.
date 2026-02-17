@@ -18,17 +18,15 @@
     <form id="feedbackForm">
     <input type="text" id="userName" placeholder="Ваше имя" required>
     <input type="email" id="userEmail" placeholder="Ваш email" required>
-    <button type="submit">Отправить в облако</button>
+    <button type="submit">Отправить в облако</button> <!-- Исправлено -->
     </form>
 </div>
 
 <script type="module">
-    // Импортируем модули Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    // ТВОИ КЛЮЧИ СО СКРИНШОТА
-    const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
   authDomain: "rauan-dee4e.firebaseapp.com",
   projectId: "rauan-dee4e",
@@ -37,11 +35,11 @@
   appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
   measurementId: "G-MQ3YTKBDGV"
 };
-    // Инициализация
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Логика кнопки
+    // ВСЯ ЛОГИКА ВНУТРИ ОБРАБОТЧИКА
     document.getElementById("feedbackForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         
@@ -49,17 +47,19 @@
         const emailInput = document.getElementById("userEmail").value;
 
         try {
-        // Запись в коллекцию "requests"
-        await addDoc(collection(db, "requests"), {
-        name: nameInput,
-        email: emailInput,
-        timestamp: new Date()
-        });
-        alert("Готово! Данные сохранены в Firebase.");
-        document.getElementById("feedbackForm").reset();
+            await addDoc(collection(db, "requests"), {
+                name: nameInput,
+                email: emailInput,
+                timestamp: new Date()
+            });
+            
+            alert("Готово! Данные сохранены в Firebase.");
+            document.getElementById("feedbackForm").reset();
+            
+            console.log("Данные успешно отправлены!"); // Проверьте консоль браузера
         } catch (error) {
-        console.error("Ошибка записи: ", error);
-        alert("Ошибка при отправке.");
+            console.error("Ошибка записи: ", error);
+            alert("Ошибка при отправке: " + error.message);
         }
     });
 </script>

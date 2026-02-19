@@ -31,31 +31,31 @@
             serverTimestamp, updateDoc, doc, increment
         } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-        // КОНФИГУРАЦИЯ
-       const firebaseConfig = {
-  apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
-  authDomain: "rauan-dee4e.firebaseapp.com",
-  projectId: "rauan-dee4e",
-  storageBucket: "rauan-dee4e.firebasestorage.app",
-  messagingSenderId: "1054739773029",
-  appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
-  measurementId: "G-MQ3YTKBDGV"
-};
+        // 🔹 КОНФИГУРАЦИЯ FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
+            authDomain: "rauan-dee4e.firebaseapp.com",
+            projectId: "rauan-dee4e",
+            storageBucket: "rauan-dee4e.appspot.com", // исправлено
+            messagingSenderId: "1054739773029",
+            appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
+            measurementId: "G-MQ3YTKBDGV"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // МЕТОДЫ: АТОМАРНОЕ ОБНОВЛЕНИЕ (LIKES)
+        // 🔹 ОБНОВЛЕНИЕ LIKES
         window.processLike = async (id) => {
             const docRef = doc(db, "requests", id);
             try {
                 await updateDoc(docRef, { likes: increment(1) });
             } catch (error) {
-                console.error("Error updating document:", error);
+                console.error("Ошибка при обновлении лайка:", error);
             }
         };
 
-        // МЕТОД: ЗАПИСЬ С ВАРИАНТАМИ
+        // 🔹 ДОБАВЛЕНИЕ ДОКУМЕНТА
         document.getElementById('mainBtn').onclick = async () => {
             const btn = document.getElementById('mainBtn');
             btn.disabled = true;
@@ -66,28 +66,31 @@
                     likes: 0,
                     timestamp: serverTimestamp()
                 });
-                document.getElementById('email').value = "";
-            } catch (e) { 
-                alert("Ошибка безопасности: Данные отклонены сервером."); 
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+            } catch (e) {
+                alert("Ошибка безопасности: данные отклонены сервером.");
+                console.error(e);
+            } finally {
+                btn.disabled = false;
             }
-            btn.disabled = false;
         };
 
-        // МЕТОД: REAL-TIME ОБНОВЛЕНИЯ
+        // 🔹 REAL-TIME ОБНОВЛЕНИЯ
         const q = query(collection(db, "requests"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('feed');
             feed.innerHTML = "";
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                const timeString = data.timestamp ? data.timestamp.toDate().toLocaleTimeString() : '...';
+                const timeString = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleTimeString() : '...';
                 feed.innerHTML += `
-                <div class="post">
-                    <span class="time">${timeString}</span>
-                    <b>${data.name}</b>
-                    <p style="margin: 5px 0;">${data.email}</p>
-                    <button class="like-btn" onclick="processLike('${doc.id}')">❤️ ${data.likes || 0}</button>
-                </div>
+                    <div class="post">
+                        <span class="time">${timeString}</span>
+                        <b>${data.name}</b>
+                        <p style="margin: 5px 0;">${data.email}</p>
+                        <button class="like-btn" onclick="processLike('${doc.id}')">❤️ ${data.likes || 0}</button>
+                    </div>
                 `;
             });
         });

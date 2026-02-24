@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -51,17 +50,17 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-    
-            const firebaseConfig = {
-      apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
-      authDomain: "rauan-dee4e.firebaseapp.com",
-      projectId: "rauan-dee4e",
-      storageBucket: "rauan-dee4e.firebasestorage.app",
-      messagingSenderId: "1054739773029",
-      appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
-      measurementId: "G-MQ3YTKBDGV"
-    };
-    
+
+     const firebaseConfig = {
+  apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
+  authDomain: "rauan-dee4e.firebaseapp.com",
+  projectId: "rauan-dee4e",
+  storageBucket: "rauan-dee4e.firebasestorage.app",
+  messagingSenderId: "1054739773029",
+  appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
+  measurementId: "G-MQ3YTKBDGV"
+};
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);

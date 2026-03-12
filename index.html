@@ -3,159 +3,143 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Private Cloud Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Hub Live</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .auth-bar { display: flex; align-items: center; gap: 15px; }
-        .user-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #007bff; }
+        :root { --green: #3ecf8e; --blue: #4285F4; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; text-align: center; }
         
-        /* Стили для списка пользователей */
-        .user-list { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 15px; }
-        .user-card { cursor: pointer; text-align: center; min-width: 70px; font-size: 12px; transition: 0.3s; }
-        .user-card:hover { transform: scale(1.1); color: #007bff; }
-        .user-card img { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 5px; }
+        #auth-ui { display: block; }
+        #app-ui { display: none; width: 100%; max-width: 400px; }
 
-        /* Стили сообщений */
-        #chatBox { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 10px; background: #fafafa; margin-bottom: 15px; display: flex; flex-direction: column; }
-        .msg { margin-bottom: 10px; padding: 10px 15px; border-radius: 18px; max-width: 70%; position: relative; }
-        .msg.sent { align-self: flex-end; background: #007bff; color: white; border-bottom-right-radius: 2px; }
-        .msg.received { align-self: flex-start; background: #e4e6eb; color: #050505; border-bottom-left-radius: 2px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.2s; color: white; }
+        .btn-google { background: white; color: #555; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        input { width: calc(100% - 100px); padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        
+        #chat-window { height: 200px; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; gap: 5px; text-align: left; font-size: 0.9em; border: 1px solid #eee; }
+        .msg { background: white; padding: 6px 10px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .msg b { color: var(--green); }
+        
+        .input-group { display: flex; gap: 5px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
     </style>
 </head>
 <body>
 
-    <div id="authSection" class="container" style="text-align: center;">
-        <button id="loginBtn">Войти через Google</button>
-        <div id="userInfo" style="display: none;" class="auth-bar">
-            <img id="userPhoto" class="user-avatar" src="">
-            <div>
-                <div id="userName" style="font-weight: bold;"></div>
-                <button id="logoutBtn" style="background:none; color:red; padding:0; font-size:12px;">Выйти</button>
+    <div id="auth-ui" class="card">
+        <h2>Group Hub</h2>
+        <button class="btn btn-google" onclick="login()">
+            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="20">
+            Войти через Google
+        </button>
+    </div>
+
+    <div id="app-ui">
+        <div class="card">
+            <h3 id="user-greeting">Загрузка...</h3>
+            <div class="status-grid">
+                <button class="btn" style="background: #10b981;" onclick="updateStatus('📚 Учусь')">📚 Учусь</button>
+                <button class="btn" style="background: #f59e0b;" onclick="updateStatus('☕ Кофе')">☕ Кофе</button>
+                <button class="btn" style="background: #3b82f6;" onclick="updateStatus('🎮 Игры')">🎮 Игры</button>
+                <button class="btn" style="background: #6c757d;" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>👥 Статусы группы</h4>
+            <div id="monitor" style="text-align: left; font-size: 0.9em;"></div>
+        </div>
+
+        <div class="card">
+            <h4>💬 Чат</h4>
+            <div id="chat-window"></div>
+            <div class="input-group">
+                <input type="text" id="msg-input" placeholder="Сообщение...">
+                <button class="btn" style="background: var(--green); width: auto; margin: 0;" onclick="sendMsg()">➤</button>
             </div>
         </div>
     </div>
 
-    <div id="mainApp" class="container" style="display: none;">
-        <p>Выберите собеседника:</p>
-        <div id="userList" class="user-list"></div>
-        
-        <h4 id="chatTitle">Выберите, кому написать...</h4>
-        <div id="chatBox"></div>
-        
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="msgInput" placeholder="Ваше сообщение...">
-            <button id="sendBtn">➤</button>
-        </div>
-    </div>
+    <script>
+        const SB_URL = 'https://sdndmieaxmwogndgcrpi.supabase.co';
+        const SB_KEY = 'sb_publishable_Hq-ivDv9DQDaF1qfIYcrbQ_mJcelMQW';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        // --- АВТОРИЗАЦИЯ ---
+async function login() {
+    try {
+        console.log("Попытка входа..."); // Проверка в консоли
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                // Автоматически определяет адрес вашего GitHub Pages
+                redirectTo: window.location.href 
+            }
+        });
+        if (error) throw error;
+    } catch (err) {
+        alert("Ошибка при входе: " + err.message);
+        console.error(err);
+    }
+}
+        async function logout() { await supabaseClient.auth.signOut(); location.reload(); }
 
-       const firebaseConfig = {
-  apiKey: "AIzaSyBR_pu5Y7wlqsrScoKOM6qe8nlgD-CxBWE",
-  authDomain: "rauan-dee4e.firebaseapp.com",
-  projectId: "rauan-dee4e",
-  storageBucket: "rauan-dee4e.firebasestorage.app",
-  messagingSenderId: "1054739773029",
-  appId: "1:1054739773029:web:0d9db0b3a6b0213e6f788c",
-  measurementId: "G-MQ3YTKBDGV"
-};
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
-        let currentChatId = null;
-        let unsubscribeChat = null;
-
-        // 1. АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ В БАЗЕ
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('userInfo').style.display = 'flex';
-                document.getElementById('loginBtn').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('userName').innerText = user.displayName;
-                document.getElementById('userPhoto').src = user.photoURL;
-
-                // Сохраняем пользователя в список доступных для чата
-                await setDoc(doc(db, "users", user.uid), {
-                    name: user.displayName,
-                    photo: user.photoURL,
-                    lastSeen: serverTimestamp()
-                }, { merge: true });
-
-                loadUserList();
-            } else {
-                document.getElementById('loginBtn').style.display = 'block';
-                document.getElementById('userInfo').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'none';
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                document.getElementById('auth-ui').style.display = 'none';
+                document.getElementById('app-ui').style.display = 'block';
+                syncUser(session.user);
+                initRealtime();
             }
         });
 
-        document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, provider);
-        document.getElementById('logoutBtn').onclick = () => signOut(auth);
-
-        // 2. ЗАГРУЗКА СПИСКА ЛЮДЕЙ
-        async function loadUserList() {
-            const usersSnap = await getDocs(collection(db, "users"));
-            const listDiv = document.getElementById('userList');
-            listDiv.innerHTML = "";
-            usersSnap.forEach(uDoc => {
-                if (uDoc.id !== auth.currentUser.uid) {
-                    const data = uDoc.data();
-                    const card = document.createElement('div');
-                    card.className = 'user-card';
-                    card.innerHTML = `<img src="${data.photo}"><div>${data.name.split(' ')[0]}</div>`;
-                    card.onclick = () => openChat(uDoc.id, data.name);
-                    listDiv.appendChild(card);
-                }
-            });
-        }
-
-        // 3. ОТКРЫТИЕ ПРИВАТНОГО ЧАТА
-        function openChat(targetUid, targetName) {
-            document.getElementById('chatTitle').innerText = "Чат с: " + targetName;
+        async function syncUser(user) {
+            const name = user.user_metadata.full_name;
+            document.getElementById('user-greeting').innerText = `Привет, ${name}!`;
             
-            // Генерируем ID чата (всегда одинаковый для двоих)
-            const myUid = auth.currentUser.uid;
-            currentChatId = myUid < targetUid ? `${myUid}_${targetUid}` : `${targetUid}_${myUid}`;
-
-            if (unsubscribeChat) unsubscribeChat();
-
-            const q = query(collection(db, "chats", currentChatId, "messages"), orderBy("timestamp", "asc"));
-            unsubscribeChat = onSnapshot(q, (snapshot) => {
-                const box = document.getElementById('chatBox');
-                box.innerHTML = "";
-                snapshot.forEach(mDoc => {
-                    const mData = mDoc.data();
-                    const side = mData.senderId === myUid ? 'sent' : 'received';
-                    box.innerHTML += `<div class="msg ${side}">${mData.text}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+            // Если пользователя нет в таблице profiles — создаем его
+            const { data } = await supabaseClient.from('profiles').select('*').eq('id', user.id).single();
+            if (!data) {
+                await supabaseClient.from('profiles').insert([{ id: user.id, username: name, status: '👋 Впервые здесь' }]);
+            }
+            refreshData();
         }
 
-        // 4. ОТПРАВКА
-        document.getElementById('sendBtn').onclick = async () => {
-            const input = document.getElementById('msgInput');
-            if (!input.value || !currentChatId) return;
+        // --- ДЕЙСТВИЯ ---
+        async function updateStatus(s) {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            await supabaseClient.from('profiles').update({ status: s }).eq('id', user.id);
+        }
 
-            await addDoc(collection(db, "chats", currentChatId, "messages"), {
-                senderId: auth.currentUser.uid,
-                text: input.value,
-                timestamp: serverTimestamp()
-            });
-            input.value = "";
-        };
+        async function sendMsg() {
+            const input = document.getElementById('msg-input');
+            if (!input.value.trim()) return;
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            await supabaseClient.from('messages').insert([{ 
+                user_name: user.user_metadata.full_name, 
+                text: input.value 
+            }]);
+            input.value = '';
+        }
 
-        window.db = db; // Для тестов безопасности в консоли image_332f9f.png
+        // --- ОБНОВЛЕНИЕ UI ---
+        async function refreshData() {
+            const { data: profiles } = await supabaseClient.from('profiles').select('*').order('username');
+            document.getElementById('monitor').innerHTML = profiles.map(p => `<div><b>${p.username}:</b> ${p.status || '...'}</div>`).join('');
+
+            const { data: msgs } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true }).limit(20);
+            const chatWin = document.getElementById('chat-window');
+            chatWin.innerHTML = msgs.map(m => `<div class="msg"><b>${m.user_name}:</b> ${m.text}</div>`).join('');
+            chatWin.scrollTop = chatWin.scrollHeight;
+        }
+
+        function initRealtime() {
+            supabaseClient.channel('main').on('postgres_changes', { event: '*', schema: 'public' }, refreshData).subscribe();
+        }
     </script>
 </body>
 </html>
